@@ -12,41 +12,6 @@ if (document.readyState !== "loading") {
 	});
 }
 
-function setUTMCookie() {
-	const url = new URL(window.location.href);
-	const utmParams = [
-		"utm_source",
-		"utm_medium",
-		"utm_campaign",
-		"utm_term",
-		"utm_content",
-	];
-	let hasUTM = false;
-	let utmData = {};
-
-	utmParams.forEach((param) => {
-		let value = url.searchParams.get(param);
-		if (value) {
-			utmData[param] = value;
-			hasUTM = true;
-		}
-	});
-
-	if (hasUTM) {
-		document.cookie = `utm_data=${JSON.stringify(utmData)}; max-age=${30 * 24 * 60 * 60}; path=/`;
-	} else {
-		let cookieData = document.cookie
-			.split("; ")
-			.find((row) => row.startsWith("utm_data="));
-
-		if (cookieData) {
-			utmData = JSON.parse(cookieData.split("=")[1]);
-		}
-	}
-
-	return utmData;
-}
-
 function initWidget() {
 	// Need share ID to fetch bot's image
 	var scripts = document.getElementsByTagName("script");
@@ -212,17 +177,41 @@ function initWidget() {
 			});
 	}
 
-	const utmData = setUTMCookie();
-	
-	// Pass any UTM parameters from the cookie onto the iframe source URL
-	let widgetUrl = new URL("https://portal.echobot.ai/chat/share?shareId=" + shareId);
-	Object.keys(utmData).forEach((key) => {
-		widgetUrl.searchParams.set(key, utmData[key]);
-	});
+	// Get current URL with UTM params
+	const url = new URL(window.location.href);
+
+	const utmSource = url.searchParams.get("utm_source");
+	const utmMedium = url.searchParams.get("utm_medium");
+	const utmCampaign = url.searchParams.get("utm_campaign");
+	const utmTerm = url.searchParams.get("utm_term");
+	const utmContent = url.searchParams.get("utm_content");
+
+	// Pass any UTM parameters onto the iframe source URL
+	// I think we just need to check for UTMs in the echo-bot-client
+	// when we push the chat ID, to make sure they don't get removed
+
+	// Here is the iframe URL
+	let widgetUrl = new URL(
+		"https://portal.echobot.ai/chat/share?shareId=" + shareId
+	);
+	if (utmSource) {
+		widgetUrl.searchParams.set("utm_source", utmSource);
+	}
+	if (utmMedium) {
+		widgetUrl.searchParams.set("utm_medium", utmMedium);
+	}
+	if (utmCampaign) {
+		widgetUrl.searchParams.set("utm_campaign", utmCampaign);
+	}
+	if (utmTerm) {
+		widgetUrl.searchParams.set("utm_term", utmTerm);
+	}
+	if (utmContent) {
+		widgetUrl.searchParams.set("utm_content", utmContent);
+	}
 
 	const elemIframe = document.createElement("iframe");
 	elemIframe.src = widgetUrl.toString();
-
 	elemIframe.allow = "clipboard-write; microphone";
 	elemIframe.style.cssText = styleBase;
 
