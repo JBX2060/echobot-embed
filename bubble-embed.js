@@ -220,6 +220,7 @@ function initWidget() {
 		widgetUrl.searchParams.set(key, utmData[key]);
 	});
 
+	const elemIframe = document.createElement("iframe");
 	elemIframe.src = widgetUrl.toString();
 
 	elemIframe.allow = "clipboard-write; microphone";
